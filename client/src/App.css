@@ -1,0 +1,62 @@
+body {
+  margin: 5px;
+  padding: 0;
+  font-family: 'Courier Prime', monospace;
+}
+
+.header {
+  color: #299B50;
+  padding: 10px;
+  display: flex;
+  align-items: center;
+  height:40px;
+  border-bottom: 1px solid #cecaca;
+}
+
+.main_title {
+  margin: 0px;
+  font-size: 26px;
+  display: flex;
+  align-items: center;
+}
+
+.content {
+ margin:0px;
+ padding-top: 70px;
+ font-size: 35px;
+
+}
+
+.icon {
+  font-size: 26px;
+  margin-right: 10px;
+}
+
+.form { 
+  padding-top: 30px;
+}
+
+
+input[type="email"],
+input[type="password"] {
+    border: 1px solid #999; 
+    border-radius: 30px;
+    width: 200px;
+    height:28px; 
+    padding: 8px; 
+    
+}
+
+input[type="submit"] {
+  border: none;
+  border-radius: 30px; 
+  padding: 10px 20px; 
+  background-color: #299B50; 
+  color: #fff;
+  cursor: pointer; 
+}
+
+
+
+
+
