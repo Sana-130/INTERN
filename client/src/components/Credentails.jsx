@@ -1,4 +1,14 @@
-function Credentails({email , password, confirm_password, updateFields}){
+function Credentails({ data, setData }){
+    const { email, password, confirm_password } = data ;
+
+    const handleChange =(e) => {
+        const {name , value } = e.target ; 
+        setData({
+            ...data,
+            [name]: value,
+        });
+    };
+
     return (
         <div className="form">
         <form action="#" method="post">
@@ -10,7 +20,7 @@ function Credentails({email , password, confirm_password, updateFields}){
              name="email" 
              required 
              value={email}
-             onChange={(e) => updateFields({email : e.target.value})}
+             onChange={handleChange}
              /><br /> <br /> 
     
             <label htmlFor="password">Password:</label>
@@ -20,7 +30,7 @@ function Credentails({email , password, confirm_password, updateFields}){
             name="password" 
             required 
             value={password}
-            onChange={(e) => updateFields({password : e.target.value})}
+            onChange={handleChange}
             /><br /> <br /> 
 
             <label htmlFor="confirm_password">Password:</label>
@@ -30,7 +40,7 @@ function Credentails({email , password, confirm_password, updateFields}){
             name="confirm_password" 
             required 
             value={confirm_password}
-            onChange={(e) => updateFields({confirm_password : e.target.value})}
+            onChange={handleChange}
             /><br /> <br /> 
     
             <input type="submit" value="Next" />

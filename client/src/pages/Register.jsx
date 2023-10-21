@@ -1,89 +1,29 @@
 import '../App.css'
-import {Option, CompanyForm, Credentails, Header, InstitutionForm, StudentForm} from '../components'
+import {Credentails, Header , UserForm} from '../components'
 import MultiStepForm from '../other_func/MutliStepForm';
-import { useState , useEffect } from 'react';
-import React from 'react';
+import { useState } from 'react';
 
-const INITIAL_DATA ={
+
+const INITIAL_DATA = {
     email : "",
     password : "",
     confirm_password : "",
     role: ""
 }
 
-const Student_data = {
-    name : "",
-    Institution_name : "",
-    Course: ""
-}
-
-const Company_data = {
-    name : "",
-    Location: ""
-}
-
-const Institution_data = {
-    name: "",
-    Departments: ""
+const formFields = {
+    fullName : "",
+    status: "",
+    collegeName : "",
+    department : "",
+    year : "",
+    InstitutionName: ""
 }
 
 
 function Register(){
-    const [data, setData] = useState(INITIAL_DATA);
-    const [formData, setformData] = useState(null);
-
-
-    function updateForm(fields){
-        setformData((prev) =>{
-            return {
-                ...prev,
-                ...fields
-            };
-        });
-    }
-
-
-    function updateFields(fields){
-        setData((prev) => {
-            return {
-                ...prev,
-                ...fields
-            };
-        });
-    }
-
-    function buttonValue(value){
-        setData((prev) => {
-            return {
-                ...prev,
-                role : value
-            }
-            
-        })
-        console.log(value);
-        switch(value){
-            case 'Student':
-                setformData(Student_data);
-                goTo(2);
-                break;
-            
-            case 'Institution':
-                setformData(Institution_data);
-                goTo(3);    
-                break;
-
-            case 'Company':
-                setformData(Company_data);
-                goTo(4);
-                break; 
-
-            default:
-                return null
-        }
-         
-    }
-
-    
+    const [credentials, setCredentials] = useState(INITIAL_DATA);
+    const [formData, setformData] = useState(formFields);
 
     const { 
         steps, 
@@ -95,13 +35,10 @@ function Register(){
         next,
         goTo
     } = MultiStepForm([
-        React.createElement(Credentails , {...data, updateFields: updateFields }), 
-        React.createElement(Option, {...data, updateFields: buttonValue}),
-        React.createElement(StudentForm, { ...data, updateFields: updateForm }),
-        React.createElement(InstitutionForm, { ...data, updateFields: updateForm }),
-        React.createElement(CompanyForm, { ...data, updateFields: updateForm })
-       // React.createElement(Option , {...data, updateFields: updateFields }),
-       // React.createElement(CompanyForm , {...data, updateFields: updateFields })
+        <Credentails data={credentials} setData={setCredentials} />,
+        <UserForm data={formData} setData={setformData} />
+        //React.createElement(Credentails , {...data, updateFields: updateFields }), 
+        //React.createElement(UserForm , {...formData, updateFields: updateForm })
     ])
 
     function onSubmit(e) {
