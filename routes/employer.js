@@ -1,45 +1,50 @@
 const express = require("express");
 const router = express.Router();
-const bcrypt = require("bcrypt");
 const pool = require("../db");
 const {authorize} = require("../middleware/authorize");
+const multer = require("multer");
+const {jwtGenerator} = require("../utils/TokenGenerator");
+const bcrypt = require('bcrypt');
+const validInfo = require("../middleware/validInfo");
 
-//create the company profile
-router.post("/profile", async(req, res)=>{
-    try{
-    const {name, location, date, description} = req.body;
-    if(!name || !location || !date || !description){
-        return res.status(400).json({error : 'Missing required fields'});
-    }
-    let newPage = await pool.query("INSERT INTO Company (Company_name, description ,location, established_date, createdBy) VALUES ($1, $2, $3, $4) RETURNING *",
-    [name, description, location, date, ]);
-    return res.status(200).json({newPage});
-    }catch(err){
-        res.status(500).send("Server error");
-    }
-});
-
-
-router.get("/profile/edit", async(req, res)=>{
-    try{
-        let Page = await pool.query("SELECT * FROM Company WHERE createdBy = $1", [])
-        if(Page.rows.length == 0){
-            return res.status(401).json("no page exists!");
-        }
-        return res.status(200).json(Page.rows[0]);
-    }catch(err){
-        res.status(500).send("Server error");
-    }
-})
-
-
-
-//create a internship post - if there's a company, by default the company name should be given in the job field. 
-
-
-router.post("/posting", authorize, async(req, res) =>{
+//employer signup
+router.post("/signup/employer",  async(req, res) =>{
     const {email, name, password } = req.body;
 
+    try{
+        const user = await pool.query("SELECT * FROM user_info WHERE email = $1",[
+            email
+        ]);
+        const userType = await getUserTypeByName(ROLES.Employer);
+        //return res.status(200).json({data: userType});
+        if(!userType){
+            return res.status(400).json({ error: 'Invalid user type' });
+            //console.log(userType.rows[0].id);
+        }
+        const type = userType.rows[0];
+
+        if(user.rows.length > 0){
+            return res.status(401).json("User already exist!");
+        }
+        const salt = await bcrypt.genSalt(10);
+        const bcryptPassword = await bcrypt.hash(password, salt);
+        
+        let newUser = await pool.query(
+            "INSERT INTO user_info (email, password) VALUES ($1, $2, $3) RETURNING *",
+            [email, bcryptPassword , type.id]
+        );
+
+        const jwToken = jwtGenerator(newUser.rows[0].user_id, type.name);
+        return res.json({jwToken});
+        
+    }catch(err){
+        console.error(err.message);
+        res.status(500).send("Server error");
+    }
+
 });
+
+
+//employer dashboard
 
 module.exports = router;

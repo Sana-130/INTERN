@@ -1,4 +1,6 @@
-module.exports = function(req, res, next){
+const { validationResult } = require('express-validator')
+
+function loginValidate (req, res, next){
     const {email, name, password} = req.body;
 
     function validEmail(userEmail){
@@ -22,3 +24,17 @@ module.exports = function(req, res, next){
     
       next();
 }
+
+function validationMiddleware (req, res, next) {
+  let errors = validationResult(req)
+
+  if (!errors.isEmpty()) {
+    return res.status(400).json({
+      errors: errors.array(),
+    })
+  }
+
+  next()
+}
+
+module.exports = {loginValidate, validationMiddleware};

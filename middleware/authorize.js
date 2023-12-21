@@ -2,18 +2,35 @@ const jwt = require("jsonwebtoken");
 require("dotenv").config();
 
 function authorize (req, res, next) {
-    const token = req.header("jwt_token");
-    if(!token){
-        return res.status(403).json({msg:"authorization denied"});
+    const acessToken = req.header("jwt_token");
+    const refreshToken = req.cookies['refreshToken'];
+
+    if(!acessToken && !refreshToken){
+      res.status(401).send('Access denied . No token provided');
     }
+    //if(!acessToken){
+    //    return res.status(403).json({msg:"authorization denied"});
+    //}
 
     try{
-        const verify = jwt.verify(token, process.env.jwtSecret);
+        const verify = jwt.verify(acessToken, process.env.jwtSecret);
         req.user = verify.user;
-        console.log(req.user);
+        //console.log(req.user);
         next();
     }catch(err){
-        res.status(401).json({ msg: "Token is not valid "});
+       // res.status(401).json({ msg: "Token is not valid "});
+       if(!refreshToken){
+        return res.status(401).send('Access Denied. No refresh token provided.');
+       }
+       try{
+          const decoded = jwt.verify(refreshToken, process.env.REF_SECRET);
+          const accessToken = jwt.sign({ user: decoded.user }, process.env.jwtSecret, { expiresIn: '1h' });
+          res.cookie('refreshToken', refreshToken, { httpOnly: true, sameSite: 'strict' })
+          .header('Authorization', accessToken)
+          .send(decoded.user);
+       }catch(err){
+          return res.status(400).send('Invalid Token.');
+       }
     }
 };
 

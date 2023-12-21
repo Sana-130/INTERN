@@ -22,9 +22,12 @@ app.use(passport.session());
 
 
 //routes
+app.use('/', require("./routes/auth.routes"));
+app.use('/employer', require("./routes/company.routes"));
+//app.use('/companies', require("./routes/company.routes"));
+//app.use('/internship', require("./routes/internship.routes"));
+//app.use('/', require("./routes/user.routes"));
 
-app.use("/auth", require("./routes/Auth"));
-app.use('/employer', require("./routes/employer"));
 
 app.listen(5000, ()=>{
     console.log(`Server is starting on port 5000`);
