@@ -3,14 +3,14 @@ require("dotenv").config();
 
 function authorize (req, res, next) {
     const acessToken = req.header("jwt_token");
-    const refreshToken = req.cookies['refreshToken'];
+    //const refreshToken = req.cookies['refreshToken'];
 
-    if(!acessToken && !refreshToken){
-      res.status(401).send('Access denied . No token provided');
-    }
-    //if(!acessToken){
-    //    return res.status(403).json({msg:"authorization denied"});
+    //if(!acessToken && !refreshToken){
+    //  res.status(401).send('Access denied . No token provided');
     //}
+    if(!acessToken){
+        return res.status(403).json({msg:"authorization denied"});
+    }
 
     try{
         const verify = jwt.verify(acessToken, process.env.jwtSecret);
@@ -18,11 +18,12 @@ function authorize (req, res, next) {
         //console.log(req.user);
         next();
     }catch(err){
+      console.log(err);
        // res.status(401).json({ msg: "Token is not valid "});
-       if(!refreshToken){
-        return res.status(401).send('Access Denied. No refresh token provided.');
-       }
-       try{
+       //if(!refreshToken){
+       // return res.status(401).send('Access Denied. No refresh token provided.');
+       //}
+       /*try{
           const decoded = jwt.verify(refreshToken, process.env.REF_SECRET);
           const accessToken = jwt.sign({ user: decoded.user }, process.env.jwtSecret, { expiresIn: '1h' });
           res.cookie('refreshToken', refreshToken, { httpOnly: true, sameSite: 'strict' })
@@ -30,9 +31,21 @@ function authorize (req, res, next) {
           .send(decoded.user);
        }catch(err){
           return res.status(400).send('Invalid Token.');
-       }
+       }*/
     }
 };
+
+const githubAuthorize = (req, res, next) =>{
+  if(req.isAuthenticated()){
+    if(req.user && req.user.github_Id){
+      return next();
+    }else{
+      return res.status(401).json({ message: 'Unauthorized: Please log in with GitHub' }); 
+    }
+  }else{
+    return res.status(401).json({ message: 'not authenticated' }); 
+  }
+}
 
 const roleAccessMiddleware = (...roles) => {
     return (req, res, next) => {
@@ -50,7 +63,7 @@ const roleAccessMiddleware = (...roles) => {
     };
   };
 
-module.exports = {authorize, roleAccessMiddleware};
+module.exports = {authorize, roleAccessMiddleware, githubAuthorize};
 
 /*function authorizeStudent(req, res, next){
     const token = req.header("jwt_token");

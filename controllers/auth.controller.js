@@ -1,9 +1,10 @@
 const bcrypt = require('bcrypt');
 const { pool } = require('../db/db-service');
-const { jwtGenerator, createRefreshToken } = require('../utils/TokenGenerator');
+const { jwtGenerator, createRefreshToken , tokenJwt} = require('../utils/TokenGenerator');
 const ROLES = require('../utils/roles');
 const sendConfirmationEmail = require('../utils/emailService');
 const jwt = require('jsonwebtoken');
+
 require("dotenv").config();
 
 
@@ -212,9 +213,20 @@ const refreshToken = async (req, res) => {
     const decoded = jwt.verify(refreshToken, process.env.REF_SECRET);
     //either refreshToken should be verified- checking if its crct, in the case of jwttoken
     //or u have to query the db and look into users refreshtoken is same
-    const accessToken = jwtGenerator(decoded.user_id, type.name);//jwt.sign({user: decoded.user}, process.env.jwtSecret, {expiresIn:'1h'});
-    res.header('Authorization', accessToken)
-    .send(decoded.user);
+   // const type = await pool.query('SELECT usertype_id FROM user_info WHERE user_id = $1', [decoded.user_id]);
+    const type_result = await pool.query(`
+    SELECT user_role.role
+    FROM user_info
+    JOIN user_role ON user_info.usertype_id = user_role.id
+    WHERE user_info.user_id = $1`, [decoded.user_id]);
+    if (type_result.rows.length > 0) {
+      const role = type_result.rows[0].role;
+      const accessToken = jwtGenerator(decoded.user_id, role);//jwt.sign({user: decoded.user}, process.env.jwtSecret, {expiresIn:'1h'});
+      res.header('Authorization', accessToken).send(decoded.user);
+    } else {
+      return res.status(404).send('Invalid role');
+    }
+   
   }catch(err){
     return res.status(400).send('Invalid refresh token');
   }
@@ -222,10 +234,33 @@ const refreshToken = async (req, res) => {
 
 //logout
 
+//handle error - cannot get accesstoken
+const redirect = async (req, res, next) => {
+  try{
+  //const accessToken = req.user.accessToken;
+  //const accessJwt = tokenJwt(accessToken);
+  //console.log(accessJwt);
+  //res.send(200).json({accessJwt});
+  //res.set('Authorization', `Bearer ${accessJwt}`);
+  console.log(req.user.accessToken);
+  res.redirect('http://localhost:5000/project/repo');
+  //return res.status(200).send(accessJwt);
+  
+  }catch(err){
+    return res.status(500).send('Internal Server Error');
+  }
+  //console.log(req.user);
+  //console.log("accesstoken", req.user);
+}
+
+
 const test = async( req, res) =>{
   console.log("jwtcrct");
 }
 
+//const logout = async (req, res) => {
+//  req.logout();
+//}
 
 module.exports = {
   signupStudent,
@@ -234,5 +269,7 @@ module.exports = {
   confirmation,
   confirmResetToken,
   forgotPassword,
-  test
+  test,
+  redirect
+  //logout
 }

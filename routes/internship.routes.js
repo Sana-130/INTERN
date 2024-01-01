@@ -8,8 +8,8 @@ const {addInternship,
       getAllInternshipsByCompany,
       getInternshipApplicants } = require('../controllers/internship.controller');
 
-router.post('/add', authorize, addInternship);
-router.put('/:internPostId/edit', authorize, editInternship);
+router.post('/add', addInternship);
+router.put('/:internPostId/edit',  editInternship);
 router.get('/:internPostId', getInternshipById);
 router.get('/:companyId/all', getAllInternshipsByCompany);
 router.get('/:internPostId/applicants', getInternshipApplicants);

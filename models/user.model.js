@@ -18,7 +18,7 @@ class userModel {
         }
     }
 
-    updateUserPassword = async (userId, hashedPassword) => {
+    updateUserPassword = async ({userId, hashedPassword}) => {
         const updatePasswordQuery = `
             UPDATE user_info 
             SET password = $1
@@ -50,7 +50,7 @@ class userModel {
         }
     }
 
-    updateUser = async (userId, { password, email, usertypeId, active }) => {
+  /*  updateUser = async (userId, { password, email, usertypeId, active }) => {
         const updateQuery = `
             UPDATE user_info
             SET
@@ -70,7 +70,7 @@ class userModel {
             console.error('Error updating user profile:', error);
             throw new Error('Failed to update user profile');
         }
-    }
+    }*/
 }
 
-module.exports = userModel;
+module.exports = new userModel;

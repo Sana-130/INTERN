@@ -16,30 +16,29 @@ class userProfile {
         }
     }
 
-    updateProfile = async (userId, { about, institutionName, currentYear, expGradYear, courseName }) => {
+    updateProfile = async ({userId, about, institutionName, currentYear, expGradYear, courseName }) => {
+       // console.log(userId, about, institutionName, currentYear, expGradYear, courseName);
         const updateQuery = `
-            UPDATE profile
-            SET
-                institution_name = COALESCE(NULLIF(E'${institutionName}', E''), institution_name),
-                current_year = COALESCE(NULLIF(E'${currentYear}', E''), current_year),
-                exp_grad_year = COALESCE(NULLIF(E'${expGradYear}', E''), exp_grad_year),
-                course_name = COALESCE(NULLIF(E'${courseName}', E''), course_name),
-                about = COALESCE(NULLIF(E'${about}', E''), about)
-            WHERE user_id = $1
-            RETURNING user_id;
+        UPDATE profile
+        SET
+            about = CASE WHEN $2 IS DISTINCT FROM coursename AND $2 IS NOT NULL THEN $2 ELSE coursename END,
+            institutionname = CASE WHEN $3 IS DISTINCT FROM institutionname AND $3 IS NOT NULL THEN $3 ELSE institutionname END,
+            currentyear = CASE WHEN $4 IS DISTINCT FROM currentyear AND $4 IS NOT NULL THEN $4 ELSE currentyear END,
+            expgradyear = CASE WHEN $5 IS DISTINCT FROM expgradyear AND $5 IS NOT NULL THEN $5 ELSE expgradyear END,
+            coursename = CASE WHEN $6 IS DISTINCT FROM coursename AND $6 IS NOT NULL THEN $6 ELSE coursename END
+        WHERE userid = $1
+        RETURNING userid;
         `;
     
         try {
-            const result = await query(updateQuery, [userId]);
+            const result = await query(updateQuery, [userId, about, institutionName, currentYear, expGradYear, courseName]);
+            //console.log(result);
             return result;
         } catch (error) {
             console.error('Error updating user profile:', error);
             throw new Error('Failed to update user profile');
         }
     }
-
-
-
 }
 
-module.exports = userProfile;
+module.exports = new userProfile;

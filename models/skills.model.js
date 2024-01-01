@@ -22,14 +22,12 @@ class skillsModel {
 
     // Retrieve the ID of a skill by its name
     getSkillIdByName = async (skillName) => {
-        const getSkillIdQuery = `
-            SELECT id
-            FROM skills
-            WHERE skill_name = $1;
+        const selectQuery = `
+        SELECT * FROM skill WHERE name ILIKE $1;
         `;
 
         try {
-            const result = await executeQuery(getSkillIdQuery, [skillName]);
+            const result = await query(selectQuery, [skillName]);
 
             // Check if the skill was found
             return result;
@@ -40,4 +38,4 @@ class skillsModel {
     }
 }
 
-module.exports = skillsModel;
+module.exports = new skillsModel;

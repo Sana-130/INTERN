@@ -24,6 +24,11 @@ app.use(passport.session());
 //routes
 app.use('/', require("./routes/auth.routes"));
 app.use('/employer', require("./routes/company.routes"));
+app.use('/project', require("./routes/repo.routes"));
+app.use('/internship', require("./routes/internship.routes"));
+app.use('/user', require('./routes/user.routes'));
+app.use('/skills', require('./routes/skills.routes'));
+
 //app.use('/companies', require("./routes/company.routes"));
 //app.use('/internship', require("./routes/internship.routes"));
 //app.use('/', require("./routes/user.routes"));

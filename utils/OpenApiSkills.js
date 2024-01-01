@@ -20,7 +20,7 @@ const authenticate = () => {
   
     try{
       const responseObj = JSON.parse(body);
-      //console.log(body.access_token, body);
+      //console.log("access token",body.access_token, body);
       acess_T = responseObj.access_token;
     }catch(err){
       console.log(err);
@@ -30,19 +30,34 @@ const authenticate = () => {
 };
 
 const search = (param) =>{
-  
+  return new Promise((resolve, reject) => {
   const options = {
     method: 'GET',
     url: 'https://emsiservices.com/skills/versions/latest/skills',
-    qs: {q: param , typeIds: 'ST1,ST2', fields: 'name', limit: '5'},
+    qs: {q: param , typeIds: 'ST1', fields: 'id,name,type,infoUrl', limit: '8'},
     headers: {Authorization: `Bearer ${acess_T}`}
   };
   
   request(options, function (error, response, body) {
-    if (error) throw new Error(error);
-  
-    console.log(body.data.map(item => item.name));
+    if (error){
+      reject(error);
+      return;
+    }
+    
+    const parsedData = JSON.parse(body);
+    // Access the "data" attribute
+    const data = parsedData.data;
+    //const pattern =/\(.*\b(?:Library|Framework)\b.*\)/;
+   // const matchingItem = data.forEach(item => {
+      //if (pattern.test(item.name)) {
+      //  console.log(item.name);
+     // }
+    //});
+    const allItem = data.map(item => item.name);
+    resolve(allItem);
+    
   });
+});
 }
   
   module.exports = {

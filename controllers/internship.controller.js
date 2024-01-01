@@ -1,24 +1,42 @@
 // controllers/internshipController.js
 const { pool } = require('../db/db-service');
+const internshipModel = require('../models/internship.model');
 
 const addInternship = async (req, res) => {
-  try {
-    const { name, description, lastDate, skills } = req.body;
-    const post = await pool.query(
-      'INSERT INTO Internships (postedBy_id, company_id, established_date, job_description, domain, skills, location, is_active) VALUES ($1, $2, $3, $4, $5, $6)',
-      [req.user.user_id, req.params.companyId, new Date(), description, 'domain', skills, 'location', true]
-    );
+  //const { title, description, company_id, last_date, unpaid, min_salary, max_salary, is_active } = req.body;
+  const updatedData = {};
+  for (const field in req.body) {
+    updatedData[field] = req.body[field] || null; // Set null for blank fields
+  }
 
-    res.status(200).json({ success: true, message: 'Internship posted successfully' });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ success: false, error: 'Internal Server Error' });
+  try {
+       
+      updatedData.user_id = 1;//req.user.user_id;
+      //find where compid and userid exists if yes add, if no errr
+      // Call the addInternship method from the exported instance of your model
+      console.log(updatedData);
+      await internshipModel.addInternship(updatedData);
+
+      // Send a success response
+      res.status(201).json({ success: true, message: 'Internship added successfully' });
+  } catch (error) {
+      console.error('Error in addInternship controller', error);
+      res.status(500).json({ success: false, message: 'Failed to add internship' });
   }
 };
 
 const editInternship = async (req, res) => {
   try {
-    const { name, description, lastDate, skills } = req.body;
+    //const { name, description, lastDate, skills, unpaid, min_salary, max_salary, is_active } = req.body;
+    const updatedData = {};
+    updatedData.id = 2;
+  for (const field in req.body) {
+    updatedData[field] = req.body[field] || null; // Set null for blank fields
+  }
+  //console.log(updatedData);
+
+  await internshipModel.updateInternship(updatedData);
+  console.log("done successfully");
     // Implement your logic for editing an internship
   } catch (err) {
     console.error(err);

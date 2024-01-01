@@ -1,14 +1,14 @@
 
 const { query } = require('../db/db-service');
 
-class Project {
-    addProject = async ({projectLink, userId}) =>{
+class UserProject {
+    addProject = async ({userId, projectId}) =>{
         const insertQuery = `
         INSERT INTO project (user_id, project_link) 
         VALUES($1, $2)
         `
         try {
-            const result = await query(insertQuery, [ userId, projectLink]);
+            const result = await query(insertQuery, [ userId, projectId]);
             return result; // Return the ID of the newly added skill
         } catch (error) {
             console.error('Error adding project to user', error);
@@ -70,3 +70,5 @@ class Project {
 
     
 }
+
+module.exports = new UserProject;

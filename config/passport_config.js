@@ -1,5 +1,6 @@
 const passport = require('passport');
 const LocalStrategy = require('passport-local').Strategy;
+const GitHubStrategy = require('passport-github2').Strategy;
 const pool = require('../database');
 const bcrypt = require('bcrypt');
 const JwtStrategy = require('passport-jwt').Strategy;
@@ -36,7 +37,7 @@ passport.use(
       { usernameField: 'email' ,
       passReqToCallback: true,
        },  
-      async (req, email, password, done) => {
+      async (req ,email, password, done) => {
       try {
 
         const user = await pool.query('SELECT * FROM user_info WHERE email = $1', [email]);
@@ -75,25 +76,31 @@ passport.use(
     })
   );
   
-
+//ONLY RETRIEVE ID FOR STORING IN SESSION
+//NO NEED OF QUERY AS WE DONT HAVE ANY SENSITIVE INFO TO BE STORED IN DB
   passport.use(
     new JwtStrategy(opts, async (jwtPayload, done) => {
       try{
-        const user = await pool.query('SELECT * FROM user_info where user_id = $1', [jwtPayload.user.id] );
-        if (user.rows.length === 0) {
-          return done(null, false);
-        }
+        //const user = await pool.query('SELECT * FROM user_info where user_id = $1', [jwtPayload.user.id] );
+        //if (user.rows.length === 0) {
+        //  return done(null, false);
+        //}
         // Add role information to the user object
-        user.rows[0].role = jwtPayload.user.role;
+        //user.rows[0].role = jwtPayload.user.role;
+        const userId = jwtPayload.user.id;
+        const userRole = jwtPayload.user.role;
+
+      // Create a user object with the extracted information
+        const user = { id: userId, role: userRole };
   
-        return done(null, user.rows[0]);
+        return done(null, user);
       }catch(err){
         return done(err, false);
       }
     })
   )
 
-  passport.serializeUser((user, done)=>{
+  /*passport.serializeUser((user, done)=>{
     done(null, user.user_id);
   });
 
@@ -104,4 +111,31 @@ passport.use(
     }catch(err){
         done(err);
     }
-  });
+  });*/
+
+passport.use(new GitHubStrategy ({
+  clientID: process.env.Git_CLIENT_ID,
+  clientSecret: process.env.Git_CLIENT_SECRET,
+  callbackURL: 'http://localhost:5000/auth/github/callback'
+},(accessToken, refreshToken, profile , done) => {
+  const userObj = {
+    //username: profile.user.username,
+    //provider: profile.user.provider,
+    username: profile.username,
+    github_Id:profile.id,
+    accessToken: accessToken // Access token is now available from req
+  };
+  done(null, userObj);
+} 
+));
+
+passport.serializeUser(function (user, done) {
+  done(null, user)
+})
+
+passport.deserializeUser(function (user, done) {
+  done(null, user)
+})
+
+//client id - ec7935c4e8874cdc73a6
+//client secret - 315cfb21143bbe6507da352dbacabab8c8f5a43e

@@ -32,7 +32,7 @@ exports.loginRouteRateLimit = async (req, res, next) => {
   const ipAddr = req.ip;
   const emailIPkey = getEmailIPkey(req.body.email, ipAddr);
 
-
+//email and ip
   const [resEmailAndIP, resSlowByIP] = await Promise.all([
     limiterEmailAndIP.get(emailIPkey),
     limiterSlowBruteByIP.get(ipAddr)
@@ -130,6 +130,7 @@ exports.loginRouteRateLimit = async (req, res, next) => {
             
             try {
                 const jwtToken = jwtGenerator(req.user.user_id, req.user.role);
+                //also generate a refreshtoken and give it to user
                 res.json({ token: jwtToken });
               } catch (err) {
                 console.log(err);

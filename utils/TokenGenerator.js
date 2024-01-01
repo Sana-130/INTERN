@@ -12,6 +12,23 @@ function jwtGenerator(user_id, user_type){
     return jwt.sign(payload, process.env.jwtSecret, {expiresIn: "1h"});
 }
 
+function tokenJwt(token){
+  const payload = {
+    token : token
+  }
+  return jwt.sign(payload, process.env.jwtSecret, {expiresIn : "1h"});
+}
+
+function verifyToken(token){
+  try{
+    const decodedToken = jwt.verify(token, process.env.jwtSecret);
+    return decodedToken;
+  }catch(err){
+    console.log(err);
+    return false;
+  }
+}
+
 function createRefreshToken(userId){
     const createRefreshToken = jwt.sign(
         {
@@ -62,4 +79,4 @@ const refreshTokens = async(token, refreshToken) => {
 }
 
 
-module.exports ={jwtGenerator, createRefreshToken};
+module.exports ={jwtGenerator, createRefreshToken, tokenJwt, verifyToken};
