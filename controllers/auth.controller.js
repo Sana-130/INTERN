@@ -11,7 +11,7 @@ require("dotenv").config();
 
 const getUserTypeByName = async (typeName) => {
   try {
-    const type = await pool.query('SELECT * FROM userType where role = $1', [typeName]);
+    const type = await pool.query('SELECT * FROM user_role where role = $1', [typeName]);
     if (type.rows.length === 0) {
       return false;
     }
@@ -23,9 +23,9 @@ const getUserTypeByName = async (typeName) => {
 
 const signupStudent = async (req, res) => {
   try {
-    const { email, name, password } = req.body;
+    const {firstname, lastname, email, password } = req.body;
 
-    if (!email || !name || !password) {
+    if (!firstname || !lastname || !email || !password) {
       return res.status(400).json({ error: 'Missing required fields' });
     }
 
