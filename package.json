@@ -1,0 +1,12 @@
+{
+  "dependencies": {
+    "@jscpd/core": "^3.5.4",
+    "adm-zip": "^0.5.10",
+    "axios": "^1.6.2",
+    "cloc": "^1.98.0-cloc",
+    "extract-zip": "^2.0.1",
+    "fs": "^0.0.1-security",
+    "jscpd": "^3.5.10",
+    "path": "^0.12.7"
+  }
+}
