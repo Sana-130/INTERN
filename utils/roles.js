@@ -1,7 +1,7 @@
 const ROLES={
     Student : "student",
-    Employer: "Employer",
-    Org : "OrgRep"
+    Employer: "employer",
+    Admin:"admin"
 }
 
 module.exports = ROLES;

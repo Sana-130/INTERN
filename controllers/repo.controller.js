@@ -3,12 +3,14 @@ const jwt = require('jsonwebtoken');
 const axios = require('axios');
 const skillsModel = require('../models/skills.model');
 const ProjectSkill = require('../models/projectSkill.model');
+const UserModel = require('../models/user.model');
 
 //return repo names
 const getRepo = async (req, res) => {
   
     try{
-      const accessToken = req.user.accessToken; //req.headers['authorization'];
+      const accessToken= await UserModel.getAccessToken(req.user.id);
+      //const accessToken = req.user.accessToken; //req.headers['authorization'];
       if(!accessToken){
         return res.status(401).json({message : 'Unauthorized : no token provided'});
       }
@@ -19,14 +21,15 @@ const getRepo = async (req, res) => {
           Authorization: `Bearer ${accessToken}`,
         },
       });
-      const apiUrl = `https://api.github.com/users/${req.user.username}/events/public`;
+      /*const username='Sana-130'
+      const apiUrl = `https://api.github.com/users/${username}/events/public`;
 
       const contrib = await axios.get(apiUrl, {
       headers: {
       'Authorization': `Bearer ${accessToken}`
       }
-      });
-      const contribDetails = contrib.data;
+      });*/
+      //const contribDetails = contrib.data;
       const repoDetails = repoRes.data;
       /*const repoLanguages = {};
       for (const repo of repoDetails) {
@@ -38,12 +41,18 @@ const getRepo = async (req, res) => {
         const languages = Object.keys(languageResp.data);
         repoLanguages[repo.name] = languages;
       }*/
-      const repoNames = repoDetails.map(repo => repo.name);
-      const repoDe = contribDetails.map(repo=> repo.type);
+      const repoNames = repoDetails.filter(repo => !repo.fork) // Filter out repositories that are forks
+      .map(repo => ({
+          id:repo.id,
+          name: repo.name,
+          created_at: repo.created_at,
+          default_branch: repo.default_branch,
+          language: repo.language
+      }));
+     // const repoDe = contribDetails.map(repo=> repo.type);
       //const languages = languagesResponse.data;
-      return res.json({ repoNames, repoDe});//, languages });
+      return res.json({ repoNames });//, languages });
     }catch(err){
-      console.log(err);
       return res.status(500).json({message : 'smthg wrong with github api or acces token'})
     }
     
@@ -121,6 +130,8 @@ const getRepo = async (req, res) => {
 
     }
   }
+
+ 
 
   module.exports = {
     getRepo,

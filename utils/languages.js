@@ -27,7 +27,7 @@ const search = async (req, res) => {
   try {
     
     const response = await axios.get(
-      `https://parseapi.back4app.com/classes/All_Programming_Languages?limit=10&where=${where}`,
+      `https://parseapi.back4app.com/classes/All_Programming_Languages?limit=5&where=${where}`,
       {
         headers: {
           'X-Parse-Application-Id': process.env.Back4AppId,
@@ -37,8 +37,8 @@ const search = async (req, res) => {
     );
     const data = response.data.results;
     
-    const allItem = data.map(item => item.ProgrammingLanguage);
-    return res.status(200).json({ allItem });
+    const allItems = data.map(item => item.ProgrammingLanguage);
+    return res.status(200).json({ allItems });
     
     
     //const parsedData =  JSON.parse(response);

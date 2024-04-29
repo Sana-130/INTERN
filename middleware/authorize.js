@@ -1,8 +1,19 @@
 const jwt = require("jsonwebtoken");
+var cookies = require("cookie-parser");
+const companyModel = require("../models/company.model");
 require("dotenv").config();
 
 function authorize (req, res, next) {
-    const acessToken = req.header("jwt_token");
+    //const acessToken = req.header("jwt_token");
+    //const acessToken = req.cookies.jwt;
+    //console.log(acessToken, req.cookies);
+    console.log(req.isAuthenticated());
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return res.status(401).json({ message: 'Unauthorized' });
+    }
+
+    const acessToken = authHeader.split(' ')[1];
     //const refreshToken = req.cookies['refreshToken'];
 
     //if(!acessToken && !refreshToken){
@@ -36,8 +47,9 @@ function authorize (req, res, next) {
 };
 
 const githubAuthorize = (req, res, next) =>{
+
   if(req.isAuthenticated()){
-    if(req.user && req.user.github_Id){
+    if(req.user && req.user.githubId){
       return next();
     }else{
       return res.status(401).json({ message: 'Unauthorized: Please log in with GitHub' }); 
@@ -63,7 +75,27 @@ const roleAccessMiddleware = (...roles) => {
     };
   };
 
-module.exports = {authorize, roleAccessMiddleware, githubAuthorize};
+  const checkCompanyOwnership = async (req, res, next) => {
+    try {
+        const { company_id } = req.body;
+        const result = companyModel.checkOwner(company_id);
+        console.log("company owner id", result);
+        if(result.id === req.user.id){
+          next();
+        }else{
+          res.status(404).send("unauthorized");
+        }
+        // Execute the query
+        
+            // User has permission, proceed to the next middleware or route handler
+        }catch (error) {
+        console.error('Error checking company ownership:', error);
+        return res.status(500).json({ error: 'Internal Server Error' });
+    }
+};
+
+
+module.exports = {authorize, roleAccessMiddleware, githubAuthorize, checkCompanyOwnership};
 
 /*function authorizeStudent(req, res, next){
     const token = req.header("jwt_token");

@@ -9,8 +9,8 @@ const emailOpts= {
 };
 const emailRateLimiter = new rateLimit.RateLimiterMemory(emailOpts);
 
-const maxWrongIPperDay = 5;
-const maxFailsByEmailAndIP = 3;
+const maxWrongIPperDay = 7;//5
+const maxFailsByEmailAndIP = 5;//3
 
 // in-memory rate limiting
 const limiterSlowBruteByIP = new rateLimit.RateLimiterMemory({
@@ -56,7 +56,7 @@ exports.loginRouteRateLimit = async (req, res, next) => {
     res.set('Retry-After', String(retrySecs));
     res
       .status(429)
-      .send(`Too many requests. Retry after ${retrySecs} seconds.`);
+      .json({message : `Too many requests. Retry after ${retrySecs} seconds.`});
   } else {
 
     passport.authenticate('local', {session : false}, async (err, user, info) =>{    
@@ -81,7 +81,7 @@ exports.loginRouteRateLimit = async (req, res, next) => {
                       res.set('Retry-After', timeOut);
                       return res
                         .status(429)
-                        .send(`Too many login attempts. Retry after ${timeOut} seconds`);
+                        .json({message:`Too many login attempts. Retry after ${timeOut} seconds`});
                     }
                 }
             
@@ -93,7 +93,6 @@ exports.loginRouteRateLimit = async (req, res, next) => {
           }
         
         if(info && info.status!==true){
-                console.log("not active");
             try {
               await emailRateLimiter.consume(info.id);
             } catch (rlRejected) {
@@ -118,7 +117,6 @@ exports.loginRouteRateLimit = async (req, res, next) => {
         if(user){
 
             if (resEmailAndIP !== null && resEmailAndIP.consumedPoints > 0) {
-                // Reset limiter based on IP + email on successful authorisation
                 await limiterEmailAndIP.delete(emailIPkey);
               }
             
@@ -129,9 +127,19 @@ exports.loginRouteRateLimit = async (req, res, next) => {
             }
             
             try {
-                const jwtToken = jwtGenerator(req.user.user_id, req.user.role);
+                const jwtToken = jwtGenerator(req.user.user_id, req.user.role, false);
+                const jwtExpirationTime = 60 * 60 * 1000;
+                const cookieExpiration = new Date(Date.now() + jwtExpirationTime);
                 //also generate a refreshtoken and give it to user
-                res.json({ token: jwtToken });
+                res.cookie('jwt', jwtToken, { httpOnly: true, secure: false, sameSite: 'None' });
+
+                res.json({ token : jwtToken , 
+                  user : {id: req.user.user_id, 
+                    first_name: req.user.first_name ,
+                    last_name:req.user.last_name, 
+                    role:req.user.role,
+                    githubId:req.user.githubId}
+                  });
               } catch (err) {
                 console.log(err);
                 res.status(500).json({ error: 'Internal Server Error' });

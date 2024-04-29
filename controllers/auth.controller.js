@@ -23,9 +23,9 @@ const getUserTypeByName = async (typeName) => {
 
 const signupStudent = async (req, res) => {
   try {
-    const { email, name, password } = req.body;
+    const { email, first_name, last_name, password } = req.body;
 
-    if (!email || !name || !password) {
+    if (!email || !first_name ||!last_name || !password) {
       return res.status(400).json({ error: 'Missing required fields' });
     }
 
@@ -47,12 +47,53 @@ const signupStudent = async (req, res) => {
     const bcryptPassword = await bcrypt.hash(password, salt);
 
     let newUser = await pool.query(
-      'INSERT INTO user_info (email, password, usertype_id) VALUES ($1, $2, $3) RETURNING *',
-      [email, bcryptPassword, type.id]
+      'INSERT INTO user_info (first_name, last_name, email, password, usertype_id) VALUES ($1, $2, $3, $4, $5) RETURNING *',
+      [first_name, last_name, email, bcryptPassword, type.id]
     );
 
     const userId = newUser.rows[0].user_id;
-    await sendConfirmationEmail(userId, email);
+    //await sendConfirmationEmail(userId, email);
+
+    return res.status(200).send('Successfully signed up');
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server error');
+  }
+};
+// Add other signup methods as needed
+
+const signupAdmin = async (req, res) => {
+  try {
+    const { email, first_name, last_name, password } = req.body;
+
+    if (!email || !first_name ||!last_name || !password) {
+      return res.status(400).json({ error: 'Missing required fields' });
+    }
+
+    const userType = await getUserTypeByName(ROLES.Admin);
+
+    if (!userType) {
+      return res.status(400).json({ error: 'Invalid user type' });
+    }
+
+    const type = userType.rows[0];
+
+    const user = await pool.query('SELECT * FROM user_info WHERE email = $1', [email]);
+
+    if (user.rows.length > 0) {
+      return res.status(401).json('User already exists!');
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    const bcryptPassword = await bcrypt.hash(password, salt);
+
+    let newUser = await pool.query(
+      'INSERT INTO user_info (first_name, last_name, email, password, usertype_id) VALUES ($1, $2, $3, $4, $5) RETURNING *',
+      [first_name, last_name, email, bcryptPassword, type.id]
+    );
+
+    const userId = newUser.rows[0].user_id;
+    //await sendConfirmationEmail(userId, email);
 
     return res.status(200).send('Successfully signed up');
   } catch (err) {
@@ -61,7 +102,6 @@ const signupStudent = async (req, res) => {
   }
 };
 
-// Add other signup methods as needed
 
 const forgotPassword = async (req, res) => {
   const { email } = req.body;
@@ -170,10 +210,11 @@ const resendConfirmation = async (req, res) => {
   }
 };
 
-const signupCompany = async (req, res) => {
-  const { email, name, password } = req.body;
+const signupEmp = async (req, res) => {
 
   try {
+    const { email, first_name, last_name, password } = req.body;
+
     const user = await pool.query('SELECT * FROM user_info WHERE email = $1', [email]);
     const userType = await getUserTypeByName(ROLES.Employer);
 
@@ -191,17 +232,19 @@ const signupCompany = async (req, res) => {
     const bcryptPassword = await bcrypt.hash(password, salt);
 
     let newUser = await pool.query(
-      'INSERT INTO user_info (email, password, usertype_id) VALUES ($1, $2, $3) RETURNING *',
-      [email, bcryptPassword, type.id]
+      'INSERT INTO user_info (email, password, usertype_id, first_name, last_name) VALUES ($1, $2, $3, $4, $5) RETURNING *',
+      [email, bcryptPassword, type.id, first_name, last_name]
     );
 
-    const jwToken = jwtGenerator(newUser.rows[0].user_id, type.name);
-    return res.json({ jwToken });
+    //const jwToken = jwtGenerator(newUser.rows[0].user_id, type.name, true);
+    return res.status(200).send('Successfully signed up');
   } catch (err) {
     console.error(err.message);
     res.status(500).send('Server error');
   }
 };
+
+
 
 //refreshing accessToken (jwtToken)
 const refreshToken = async (req, res) => {
@@ -237,25 +280,20 @@ const refreshToken = async (req, res) => {
 //handle error - cannot get accesstoken
 const redirect = async (req, res, next) => {
   try{
-  //const accessToken = req.user.accessToken;
-  //const accessJwt = tokenJwt(accessToken);
-  //console.log(accessJwt);
-  //res.send(200).json({accessJwt});
-  //res.set('Authorization', `Bearer ${accessJwt}`);
-  console.log(req.user.accessToken);
-  res.redirect('http://localhost:5000/project/repo');
-  //return res.status(200).send(accessJwt);
+    const jwtToken = jwtGenerator(req.user.user_id, req.user.role, req.user.githubId);
+    res.redirect(`http://localhost:5173/callback/${jwtToken}`);
   
   }catch(err){
+    console.log(err);
     return res.status(500).send('Internal Server Error');
   }
-  //console.log(req.user);
-  //console.log("accesstoken", req.user);
 }
 
 
 const test = async( req, res) =>{
-  console.log("jwtcrct");
+  console.log("test", req.user);
+  res.json({id: req.user.id, role:req.user.role, githubId:req.user.githubId, 
+    first_name:req.user.first_name, last_name:req.user.last_name, imageLink: req.user.imageLink, profileLink:req.user.profileLink, username:req.user.username});
 }
 
 //const logout = async (req, res) => {
@@ -264,12 +302,14 @@ const test = async( req, res) =>{
 
 module.exports = {
   signupStudent,
-  signupCompany,
+  signupEmp,
   resendConfirmation,
   confirmation,
   confirmResetToken,
   forgotPassword,
   test,
-  redirect
+  redirect,
+  getUserTypeByName,
+  signupAdmin
   //logout
 }

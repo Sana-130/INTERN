@@ -2,9 +2,10 @@
 const { query } = require('../db/db-service');
 
 class UserProject {
-    addProject = async ({userId, projectId}) =>{
+    addProject = async (userId, projectId) =>{
+        console.log("calling from db", userId, projectId);
         const insertQuery = `
-        INSERT INTO project (user_id, project_link) 
+        INSERT INTO project (user_id, repo_id) 
         VALUES($1, $2)
         `
         try {
@@ -54,13 +55,13 @@ class UserProject {
     }
 
     //only delete project if related skills are deleted.
-    deleteProject = async ({project_id, userId}) => {
+    deleteProject = async (project_id, userId) => {
         const deleteQuery = `
-        DELETE FROM project WHERE user_id = $1 AND project_id = $2
+        DELETE FROM project WHERE user_id = $1 AND repo_id = $2
         `
 
         try {
-            const result = await query(deleteQuery, [ project_id, userId]);
+            const result = await query(deleteQuery, [project_id, userId]);
             return result; // Return the ID of the newly added skill
         } catch (error) {
             console.error('Error deleting project from user', error);
@@ -68,7 +69,7 @@ class UserProject {
         }
     }
 
-    
+   
 }
 
 module.exports = new UserProject;

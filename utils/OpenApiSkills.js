@@ -34,7 +34,7 @@ const search = (param) =>{
   const options = {
     method: 'GET',
     url: 'https://emsiservices.com/skills/versions/latest/skills',
-    qs: {q: param , typeIds: 'ST1', fields: 'id,name,type,infoUrl', limit: '8'},
+    qs: {q: param , typeIds: 'ST1', fields: 'id,name,type,infoUrl', limit: '5'},
     headers: {Authorization: `Bearer ${acess_T}`}
   };
   
